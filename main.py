@@ -10,7 +10,7 @@ black_pawn_image = pygame.image.load("figury/black pawn.png")
 black_queen_image = pygame.image.load("figury/black queen.png")
 
 
-def chech_placing(x, y):
+def is_piece_field(x, y):
     return (x % 2 == 0 and y % 2 != 0) or (x % 2 != 0 and y % 2 == 0)
 
 
@@ -33,10 +33,10 @@ def is_end(board):
 def place_pieces(board):
     for x in range(8):
         for y in range(3):
-            if chech_placing(x, y):
+            if is_piece_field(x, y):
                 board[x][y] = Man(Color.Black, x, y, board)
         for y in range(5, 8):
-            if chech_placing(x, y):
+            if is_piece_field(x, y):
                 board[x][y] = Man(Color.White, x, y, board)
 
 
