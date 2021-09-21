@@ -11,7 +11,10 @@ black_queen_image = pygame.image.load("figury/black queen.png")
 
 
 def is_piece_field(x, y):
-    return (x % 2 == 0 and y % 2 != 0) or (x % 2 != 0 and y % 2 == 0)
+    if x % 2 == 0:
+        return y % 2 != 0
+    else:
+        return y % 2 == 0
 
 
 def is_end(board):
@@ -42,19 +45,18 @@ def place_pieces(board):
 
 def create_board_surf():
     board_surf = pygame.Surface((TILESIZE * 8, TILESIZE * 8))
-    gray = False
+    is_gray = False
     for y in range(8):
         for x in range(8):
             rect = pygame.Rect(x * TILESIZE, y * TILESIZE, TILESIZE, TILESIZE)
-            pygame.draw.rect(board_surf, pygame.Color('gray' if gray else 'white'), rect)
-            gray = not gray
-        gray = not gray
+            pygame.draw.rect(board_surf, pygame.Color('gray' if is_gray else 'white'), rect)
+            is_gray = not is_gray
+        is_gray = not is_gray
     return board_surf
 
 
 def create_board():
-    board = [[None for i in range(8)] for j in range(8)]
-    return board
+    return [[None for i in range(8)] for j in range(8)]
 
 
 def check_promotion(board):
@@ -71,8 +73,7 @@ def promote(board):
     if piece is not None:
         pos_x = piece.current_position_x
         pos_y = piece.current_position_y
-        if piece is not None:
-            board[pos_x][pos_y] = King(piece.color, pos_x, pos_y, board)
+        board[pos_x][pos_y] = King(piece.color, pos_x, pos_y, board)
 
 
 def draw_pieces(board_surf, board):
@@ -148,7 +149,6 @@ def main():
                 elif pygame.mouse.get_pressed()[0]:
                     piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn, double_capture)
                     if piece == 1:
-                        double_capture = True
                         continue
                     if piece is not None and piece != held_piece and piece.color == held_piece.color:
                         held_piece = piece
