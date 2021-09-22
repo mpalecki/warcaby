@@ -18,18 +18,18 @@ def is_piece_field(x, y):
 
 
 def is_end(board):
-    white = black = 0
+    white = black = False
     for x in range(8):
         for y in range(8):
             if board[x][y] is not None:
                 if board[x][y].color == Color.White:
-                    white += 1
+                    white = True
                 else:
-                    black += 1
+                    black = True
 
-    if white == 0:
+    if not white:
         print("Black wins")
-    elif black == 0:
+    elif not black:
         print("White wins")
 
 
@@ -91,12 +91,15 @@ def draw_pieces(board_surf, board):
                     board_surf.blit(black_queen_image, (i * TILESIZE, j * TILESIZE))
 
 
+def is_click_on_board(x, y):
+    return 360 <= x <= 920 and 80 <= y <= 640
 
-def click_on_board(board, current_turn):
+
+def take_piece(board, current_turn):
     pos = pygame.mouse.get_pos()
     x = (pos[0] - 360) // TILESIZE
     y = (pos[1] - 80) // TILESIZE
-    if 360 <= pos[0] <= 920 and 80 <= pos[1] <= 640 and board[x][y] is not None and current_turn == board[x][y].color:
+    if is_click_on_board(pos[0], pos[1]) and board[x][y] is not None and current_turn == board[x][y].color:
         return board[x][y]
 
 
@@ -104,9 +107,9 @@ def move_piece(board, held_piece, possible_moves, current_turn, double_capture):
     pos = pygame.mouse.get_pos()
     x = (pos[0] - 360) // TILESIZE
     y = (pos[1] - 80) // TILESIZE
-    if 360 <= pos[0] <= 920 and 80 <= pos[1] <= 640:
+    if is_click_on_board(pos[0], pos[1]):
         if double_capture and [x, y] not in held_piece.capture_fields:
-            return 1, current_turn, double_capture
+            return None, current_turn, double_capture
         if board[x][y] is None:
             if not held_piece.capture_fields:
                 if [x, y] in possible_moves:
@@ -118,13 +121,13 @@ def move_piece(board, held_piece, possible_moves, current_turn, double_capture):
                     held_piece.capture_fields.clear()
                     held_piece.check_possible_moves(board)
                     if held_piece.capture_fields:
-                        # return 1, bo zwraca zawsze odpowiednią bierkę, jeśli jej nie ma to nulla,
-                        # a chciałem mieć trzecią opcję i to jedyne na co wpadłem xD
-                        return 1, current_turn, double_capture
+                        double_capture = True
+                        return None, current_turn, double_capture
                     else:
                         current_turn = -current_turn
                         double_capture = False
-    return board[x][y], current_turn, double_capture
+        return board[x][y], current_turn, double_capture
+    return None, current_turn, double_capture
 
 
 def main():
@@ -144,13 +147,12 @@ def main():
                 return
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pressed()[0] and held_piece is None:
-                    held_piece = click_on_board(board, current_turn)
+                    held_piece = take_piece(board, current_turn)
                     if held_piece is not None:
                         possible_moves = held_piece.check_possible_moves(board)
                 elif pygame.mouse.get_pressed()[0]:
                     piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn, double_capture)
-                    if piece == 1:
-                        double_capture = True
+                    if double_capture:
                         continue
                     if piece is not None and piece != held_piece and piece.color == held_piece.color:
                         held_piece = piece
