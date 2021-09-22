@@ -91,6 +91,7 @@ def draw_pieces(board_surf, board):
                     board_surf.blit(black_queen_image, (i * TILESIZE, j * TILESIZE))
 
 
+
 def click_on_board(board, current_turn):
     pos = pygame.mouse.get_pos()
     x = (pos[0] - 360) // TILESIZE
@@ -149,6 +150,7 @@ def main():
                 elif pygame.mouse.get_pressed()[0]:
                     piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn, double_capture)
                     if piece == 1:
+                        double_capture = True
                         continue
                     if piece is not None and piece != held_piece and piece.color == held_piece.color:
                         held_piece = piece

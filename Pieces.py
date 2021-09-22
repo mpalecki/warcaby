@@ -47,7 +47,7 @@ class Piece(ABC):
 class Man(Piece):
 
     def can_capture(self, board):
-        moves = [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+        moves = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         for x, y in moves:
             try:
                 if board[self.current_position_x + x][self.current_position_y + y] is not None and \
@@ -80,14 +80,14 @@ class Man(Piece):
 class King(Piece):
 
     def check_possible_moves(self, board):
-        directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         moves = []
         for x, y in directions:
             for i in range(1, 8):
                 try:
                     if board[self.current_position_x + x * i][self.current_position_y + y * i] is None:
                         add_to_list(moves, self.current_position_x + x * i, self.current_position_y + y * i)
-                    elif board[self.current_position_x + x * i][self.current_position_y + y * i] is not None:
+                    else:
                         if board[self.current_position_x + x * i][self.current_position_y + y * i].color == self.color:
                             break
                         if board[self.current_position_x + x * i + x][self.current_position_y + y * i + y] is None:
