@@ -61,10 +61,10 @@ def create_board():
 
 def check_promotion(board):
     for i in range(1, 8, 2):
-        if board[i][0] is not None and board[i][0].color == Color.White:
+        if board[i][0] is not None and board[i][0].color == Color.White and type(board[i][0]) == Man:
             return board[i][0]
     for i in range(0, 8, 2):
-        if board[i][7] is not None and board[i][7].color == Color.Black:
+        if board[i][7] is not None and board[i][7].color == Color.Black and type(board[i][0]) == Man:
             return board[i][7]
 
 
@@ -184,4 +184,5 @@ def main():
         clock.tick(60)
 
 
-main()
+if __name__ == "__main__":
+    main()
