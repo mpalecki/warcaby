@@ -4,10 +4,6 @@ from Pieces import *
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 TILESIZE = 70
-white_pawn_image = pygame.image.load("figury/white pawn.png")
-white_queen_image = pygame.image.load("figury/white queen.png")
-black_pawn_image = pygame.image.load("figury/black pawn.png")
-black_queen_image = pygame.image.load("figury/black queen.png")
 
 
 def is_piece_field(x, y):
@@ -56,7 +52,7 @@ def create_board_surf():
 
 
 def create_board():
-    return [[None for i in range(8)] for j in range(8)]
+    return [[None for _ in range(8)] for _ in range(8)]
 
 
 def check_promotion(board):
@@ -64,7 +60,7 @@ def check_promotion(board):
         if board[i][0] is not None and board[i][0].color == Color.White and type(board[i][0]) == Man:
             return board[i][0]
     for i in range(0, 8, 2):
-        if board[i][7] is not None and board[i][7].color == Color.Black and type(board[i][0]) == Man:
+        if board[i][7] is not None and board[i][7].color == Color.Black and type(board[i][7]) == Man:
             return board[i][7]
 
 
@@ -77,18 +73,32 @@ def promote(board):
 
 
 def draw_pieces(board_surf, board):
+    # for i in range(8):
+    #     for j in range(8):
+    #         if type(board[i][j]) == Man:
+    #             if board[i][j].color == Color.White:
+    #                 board_surf.blit(white_pawn_image, (i * TILESIZE, j * TILESIZE))
+    #             else:
+    #                 board_surf.blit(black_pawn_image, (i * TILESIZE, j * TILESIZE))
+    #         elif type(board[i][j]) == King:
+    #             if board[i][j].color == Color.White:
+    #                 board_surf.blit(white_queen_image, (i * TILESIZE, j * TILESIZE))
+    #             else:
+    #                 board_surf.blit(black_queen_image, (i * TILESIZE, j * TILESIZE))
+    img_dict = {
+        Man: {
+            Color.White: pygame.image.load("figury/white pawn.png"),
+            Color.Black: pygame.image.load("figury/black pawn.png")
+        },
+        King: {
+            Color.White: pygame.image.load("figury/white queen.png"),
+            Color.Black: pygame.image.load("figury/black queen.png")
+        }
+    }
     for i in range(8):
         for j in range(8):
-            if type(board[i][j]) == Man:
-                if board[i][j].color == Color.White:
-                    board_surf.blit(white_pawn_image, (i * TILESIZE, j * TILESIZE))
-                else:
-                    board_surf.blit(black_pawn_image, (i * TILESIZE, j * TILESIZE))
-            elif type(board[i][j]) == King:
-                if board[i][j].color == Color.White:
-                    board_surf.blit(white_queen_image, (i * TILESIZE, j * TILESIZE))
-                else:
-                    board_surf.blit(black_queen_image, (i * TILESIZE, j * TILESIZE))
+            if board[i][j] is not None:
+                board_surf.blit(img_dict[type(board[i][j])][board[i][j].color], (i * TILESIZE, j * TILESIZE))
 
 
 def is_click_on_board(x, y):
@@ -107,27 +117,24 @@ def move_piece(board, held_piece, possible_moves, current_turn, double_capture):
     pos = pygame.mouse.get_pos()
     x = (pos[0] - 360) // TILESIZE
     y = (pos[1] - 80) // TILESIZE
-    if is_click_on_board(pos[0], pos[1]):
-        if double_capture and [x, y] not in held_piece.capture_fields:
-            return None, current_turn, double_capture
-        if board[x][y] is None:
-            if not held_piece.capture_fields:
-                if [x, y] in possible_moves:
-                    held_piece.move(x, y, board)
-                    current_turn = -current_turn
-            else:
-                if [x, y] in held_piece.capture_fields:
-                    held_piece.move(x, y, board)
-                    held_piece.capture_fields.clear()
-                    held_piece.check_possible_moves(board)
-                    if held_piece.capture_fields:
-                        double_capture = True
-                        return None, current_turn, double_capture
-                    else:
-                        current_turn = -current_turn
-                        double_capture = False
+    if not is_click_on_board(pos[0], pos[1]) or double_capture and [x, y] not in held_piece.capture_fields:
+        return None, current_turn, double_capture
+    if board[x][y] is not None:
         return board[x][y], current_turn, double_capture
-    return None, current_turn, double_capture
+    if not held_piece.capture_fields and [x, y] in possible_moves:
+        held_piece.move(x, y, board)
+        current_turn = -current_turn
+    elif [x, y] in held_piece.capture_fields:
+        held_piece.move(x, y, board)
+        held_piece.clear_capture_fields()
+        held_piece.check_possible_moves(board)
+        if held_piece.capture_fields:
+            double_capture = True
+            return None, current_turn, double_capture
+        else:
+            current_turn = -current_turn
+            double_capture = False
+    return board[x][y], current_turn, double_capture
 
 
 def main():
@@ -151,15 +158,16 @@ def main():
                     if held_piece is not None:
                         possible_moves = held_piece.check_possible_moves(board)
                 elif pygame.mouse.get_pressed()[0]:
-                    piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn, double_capture)
+                    piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn,
+                                                                     double_capture)
                     if double_capture:
                         continue
                     if piece is not None and piece != held_piece and piece.color == held_piece.color:
                         held_piece = piece
-                        held_piece.capture_fields.clear()
+                        held_piece.clear_capture_fields()
                         possible_moves = held_piece.check_possible_moves(board)
                         continue
-                    held_piece.capture_fields.clear()
+                    held_piece.clear_capture_fields()
                     held_piece = None
                     is_end(board)
 
@@ -169,7 +177,8 @@ def main():
         if not double_capture:
             promote(board)
         if held_piece is not None:
-            pygame.draw.rect(board_surf, (0, 255, 0), (held_piece.current_position_x * TILESIZE, held_piece.current_position_y * TILESIZE, TILESIZE, TILESIZE))
+            pygame.draw.rect(board_surf, (0, 255, 0), (
+                held_piece.current_position_x * TILESIZE, held_piece.current_position_y * TILESIZE, TILESIZE, TILESIZE))
         else:
             possible_moves.clear()
         if held_piece is not None and held_piece.capture_fields:

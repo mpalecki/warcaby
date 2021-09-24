@@ -43,6 +43,9 @@ class Piece(ABC):
     def check_possible_moves(self, board):
         pass
 
+    def clear_capture_fields(self):
+        self.capture_fields.clear()
+
 
 class Man(Piece):
 
@@ -59,18 +62,18 @@ class Man(Piece):
 
     def check_possible_moves(self, board):
         moves = []
+        directions_for_colors = {
+            Color.White: [(-1, -1), (1, -1)],
+            Color.Black: [(-1, 1), (1, 1)]
+        }
         try:
             self.can_capture(board)
-            if self.color == Color.White:
-                if board[self.current_position_x - 1][self.current_position_y - 1] is None:
-                    add_to_list(moves, self.current_position_x - 1, self.current_position_y - 1)
-                if board[self.current_position_x + 1][self.current_position_y - 1] is None:
-                    add_to_list(moves, self.current_position_x + 1, self.current_position_y - 1)
-            else:
-                if board[self.current_position_x - 1][self.current_position_y + 1] is None:
-                    add_to_list(moves, self.current_position_x - 1, self.current_position_y + 1)
-                if board[self.current_position_x + 1][self.current_position_y + 1] is None:
-                    add_to_list(moves, self.current_position_x + 1, self.current_position_y + 1)
+            directions = directions_for_colors[self.color]
+            for x, y in directions:
+                target_x = self.current_position_x + x
+                target_y = self.current_position_y + y
+                if board[target_x][target_y] is None:
+                    add_to_list(moves, target_x, target_y)
             self.can_capture(board)
         except IndexError:
             pass
@@ -92,7 +95,7 @@ class King(Piece):
                             break
                         if board[self.current_position_x + x * i + x][self.current_position_y + y * i + y] is None:
                             add_to_list(self.capture_fields, self.current_position_x + x * i + x, self.current_position_y + y * i + y)
-                            break
+                        break
                 except IndexError:
                     break
         return moves + self.capture_fields
