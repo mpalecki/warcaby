@@ -73,18 +73,6 @@ def promote(board):
 
 
 def draw_pieces(board_surf, board):
-    # for i in range(8):
-    #     for j in range(8):
-    #         if type(board[i][j]) == Man:
-    #             if board[i][j].color == Color.White:
-    #                 board_surf.blit(white_pawn_image, (i * TILESIZE, j * TILESIZE))
-    #             else:
-    #                 board_surf.blit(black_pawn_image, (i * TILESIZE, j * TILESIZE))
-    #         elif type(board[i][j]) == King:
-    #             if board[i][j].color == Color.White:
-    #                 board_surf.blit(white_queen_image, (i * TILESIZE, j * TILESIZE))
-    #             else:
-    #                 board_surf.blit(black_queen_image, (i * TILESIZE, j * TILESIZE))
     img_dict = {
         Man: {
             Color.White: pygame.image.load("figury/white pawn.png"),
@@ -97,8 +85,9 @@ def draw_pieces(board_surf, board):
     }
     for i in range(8):
         for j in range(8):
-            if board[i][j] is not None:
-                board_surf.blit(img_dict[type(board[i][j])][board[i][j].color], (i * TILESIZE, j * TILESIZE))
+            field = board[i][j]
+            if field is not None:
+                board_surf.blit(img_dict[type(field)][field.color], (i * TILESIZE, j * TILESIZE))
 
 
 def is_click_on_board(x, y):

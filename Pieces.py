@@ -21,6 +21,7 @@ class Piece(ABC):
     current_position_x = None
     current_position_y = None
     capture_fields = []
+    directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
 
     def __init__(self, color: Color, current_position_x, current_position_y, board):
         self.color = color
@@ -50,13 +51,16 @@ class Piece(ABC):
 class Man(Piece):
 
     def can_capture(self, board):
-        moves = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-        for x, y in moves:
+        for x, y in self.directions:
             try:
-                if board[self.current_position_x + x][self.current_position_y + y] is not None and \
-                        board[self.current_position_x + x][self.current_position_y + y].color != self.color and \
-                        board[self.current_position_x + x * 2][self.current_position_y + y * 2] is None:
-                    add_to_list(self.capture_fields, self.current_position_x + x * 2, self.current_position_y + y * 2)
+                enemy_x = self.current_position_x + x
+                enemy_y = self.current_position_y + y
+                enemy_field = board[enemy_x][enemy_y]
+                landing_x = self.current_position_x + x * 2
+                landing_y = self.current_position_y + y * 2
+                landing_field = board[landing_x][landing_y]
+                if enemy_field is not None and enemy_field.color != self.color and landing_field is None:
+                    add_to_list(self.capture_fields, landing_x, landing_y)
             except IndexError:
                 continue
 
@@ -83,18 +87,20 @@ class Man(Piece):
 class King(Piece):
 
     def check_possible_moves(self, board):
-        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         moves = []
-        for x, y in directions:
+        for x, y in self.directions:
             for i in range(1, 8):
                 try:
-                    if board[self.current_position_x + x * i][self.current_position_y + y * i] is None:
-                        add_to_list(moves, self.current_position_x + x * i, self.current_position_y + y * i)
+                    target_x = self.current_position_x + x * i
+                    target_y = self.current_position_y + y * i
+                    target_field = board[target_x][target_y]
+                    if target_field is None:
+                        add_to_list(moves, target_x, target_y)
                     else:
-                        if board[self.current_position_x + x * i][self.current_position_y + y * i].color == self.color:
+                        if target_field.color == self.color:
                             break
-                        if board[self.current_position_x + x * i + x][self.current_position_y + y * i + y] is None:
-                            add_to_list(self.capture_fields, self.current_position_x + x * i + x, self.current_position_y + y * i + y)
+                        if board[target_x + x][target_y + y] is None:
+                            add_to_list(self.capture_fields, target_x + x, target_y + y)
                         break
                 except IndexError:
                     break
