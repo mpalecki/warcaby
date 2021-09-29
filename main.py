@@ -6,6 +6,62 @@ SCREEN_HEIGHT = 720
 TILESIZE = 70
 
 
+def main():
+    win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    board = create_board()
+    place_pieces(board)
+    current_turn = Color.White
+    double_capture = False
+    held_piece = None
+    clock = pygame.time.Clock()
+    possible_moves = []
+    while True:
+        board_surf = create_board_surf()
+        events = pygame.event.get()
+        for ev in events:
+            if ev.type == pygame.QUIT:
+                return
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                if pygame.mouse.get_pressed()[0] and held_piece is None:
+                    held_piece = take_piece(board, current_turn)
+                    if held_piece is not None:
+                        possible_moves = held_piece.check_possible_moves(board)
+                elif pygame.mouse.get_pressed()[0]:
+                    piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn,
+                                                                     double_capture)
+                    if double_capture:
+                        continue
+                    if piece is not None and piece != held_piece and piece.color == held_piece.color:
+                        held_piece = piece
+                        held_piece.clear_capture_fields()
+                        possible_moves = held_piece.check_possible_moves(board)
+                        continue
+                    held_piece.clear_capture_fields()
+                    held_piece = None
+                    is_end(board)
+
+        win.fill((254, 172, 0))
+        pygame.draw.rect(win, (189, 111, 12), (0, 640, 1280, 80))
+        pygame.draw.rect(win, (189, 111, 12), (0, 0, 1280, 80))
+        if not double_capture:
+            promote(board)
+        if held_piece is not None:
+            pygame.draw.rect(board_surf, (0, 255, 0), (
+                held_piece.current_position_x * TILESIZE, held_piece.current_position_y * TILESIZE, TILESIZE, TILESIZE))
+        else:
+            possible_moves.clear()
+        if held_piece is not None and held_piece.capture_fields:
+            for x, y in held_piece.capture_fields:
+                pygame.draw.circle(board_surf, 'brown', [x * TILESIZE + TILESIZE / 2, y * TILESIZE + TILESIZE / 2], 10)
+        else:
+            for x, y in possible_moves:
+                pygame.draw.circle(board_surf, 'brown', [x * TILESIZE + TILESIZE / 2, y * TILESIZE + TILESIZE / 2], 10)
+        draw_pieces(board_surf, board)
+        win.blit(board_surf, (360, 80))
+        pygame.display.flip()
+        clock.tick(60)
+
+
 def is_piece_field(x, y):
     if x % 2 == 0:
         return y % 2 != 0
@@ -124,62 +180,6 @@ def move_piece(board, held_piece, possible_moves, current_turn, double_capture):
             current_turn = -current_turn
             double_capture = False
     return board[x][y], current_turn, double_capture
-
-
-def main():
-    win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    board = create_board()
-    place_pieces(board)
-    current_turn = Color.White
-    double_capture = False
-    held_piece = None
-    clock = pygame.time.Clock()
-    possible_moves = []
-    while True:
-        board_surf = create_board_surf()
-        events = pygame.event.get()
-        for ev in events:
-            if ev.type == pygame.QUIT:
-                return
-            if ev.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.mouse.get_pressed()[0] and held_piece is None:
-                    held_piece = take_piece(board, current_turn)
-                    if held_piece is not None:
-                        possible_moves = held_piece.check_possible_moves(board)
-                elif pygame.mouse.get_pressed()[0]:
-                    piece, current_turn, double_capture = move_piece(board, held_piece, possible_moves, current_turn,
-                                                                     double_capture)
-                    if double_capture:
-                        continue
-                    if piece is not None and piece != held_piece and piece.color == held_piece.color:
-                        held_piece = piece
-                        held_piece.clear_capture_fields()
-                        possible_moves = held_piece.check_possible_moves(board)
-                        continue
-                    held_piece.clear_capture_fields()
-                    held_piece = None
-                    is_end(board)
-
-        win.fill((254, 172, 0))
-        pygame.draw.rect(win, (189, 111, 12), (0, 640, 1280, 80))
-        pygame.draw.rect(win, (189, 111, 12), (0, 0, 1280, 80))
-        if not double_capture:
-            promote(board)
-        if held_piece is not None:
-            pygame.draw.rect(board_surf, (0, 255, 0), (
-                held_piece.current_position_x * TILESIZE, held_piece.current_position_y * TILESIZE, TILESIZE, TILESIZE))
-        else:
-            possible_moves.clear()
-        if held_piece is not None and held_piece.capture_fields:
-            for x, y in held_piece.capture_fields:
-                pygame.draw.circle(board_surf, 'brown', [x * TILESIZE + TILESIZE / 2, y * TILESIZE + TILESIZE / 2], 10)
-        else:
-            for x, y in possible_moves:
-                pygame.draw.circle(board_surf, 'brown', [x * TILESIZE + TILESIZE / 2, y * TILESIZE + TILESIZE / 2], 10)
-        draw_pieces(board_surf, board)
-        win.blit(board_surf, (360, 80))
-        pygame.display.flip()
-        clock.tick(60)
 
 
 if __name__ == "__main__":
